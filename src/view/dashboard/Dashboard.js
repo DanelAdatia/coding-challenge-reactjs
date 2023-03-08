@@ -7,8 +7,9 @@ import { useNavigate } from "react-router-dom";
 // https://formik.org/docs/examples/with-material-ui
 import * as yup from "yup";
 
-const Dashboard = () => {
+const Dashboard = ({ setAllData }) => {
   const navigate = useNavigate();
+
   // https://formik.org/docs/api/useFormik
   // https://stackoverflow.com/questions/16699007/regular-expression-to-match-standard-10-digit-phone-number
   const phoneRegExp = /^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
@@ -34,6 +35,7 @@ const Dashboard = () => {
     validationSchema: userSchema,
     onSubmit: (values) => {
       console.log(values);
+      setAllData(values);
       navigate("dashboard/address");
     },
   });
