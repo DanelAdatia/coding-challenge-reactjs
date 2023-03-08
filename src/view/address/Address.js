@@ -1,41 +1,108 @@
-import React from "react";
-// import GoogleMapReact from "google-map-react";
+import React, { useCallback, useRef, useState } from "react";
+import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { Autocomplete, Marker } from "@react-google-maps/api";
 import "./map.css";
-// https://www.npmjs.com/package/country-state-city
-import { Country, State, City } from "country-state-city";
-import { Autocomplete, Button, TextField } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+const libraries = ["places"];
+const mapContainerStyle = {
+  height: "60vh",
+  width: "100vw",
+};
+
+const options = {
+  disableDefaultUI: true,
+  zoomControl: true,
+};
+
+const center = {
+  lat: 35.64860429083234,
+  lng: 138.57693376912908,
+};
+
 const Address = () => {
-  // https://blog.logrocket.com/integrating-google-maps-react/
-  // https://github.com/ovieokeh/contact-page-with-google-maps/blob/add-map/src/components/map/map.css
-
   const navigate = useNavigate();
-  const Countries = Country.getAllCountries();
-  console.log(Countries, "Countries");
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries,
+  });
 
-  console.log(State.getAllStates(), "State");
-  console.log(City.getAllCities(), "City");
+  const mapRef = useRef();
+  const autocompleteRef = useRef(null);
+  const [marker, setMarker] = useState(null);
+
+  const onMapLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
+
+  const onPlaceChanged = () => {
+    const place = autocompleteRef.current.getPlace();
+    if (!place.geometry) return;
+
+    setMarker({
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng(),
+      address: place.formatted_address,
+    });
+
+    if (mapRef.current) {
+      mapRef.current.panTo({
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      });
+      mapRef.current.setZoom(14);
+    }
+  };
+
+  if (loadError) return "Error";
+  if (!isLoaded) return "Loading...";
 
   return (
     <div>
-      {/* https://mui.com/material-ui/react-autocomplete/ */}
-
+      <Box style={{ display: "flex", justifyContent: "space-between" }}>
+        <Button
+          style={{ marginTop: 10 }}
+          variant="contained"
+          onClick={() => {
+            navigate(-1);
+          }}
+        >
+          Go Back
+        </Button>
+        <Button
+          style={{ marginTop: 10 }}
+          variant="contained"
+          onClick={() => navigate("/third-page")}
+        >
+          Go to the Third Page
+        </Button>
+      </Box>
       <Autocomplete
-        disablePortal
-        id="Countries"
-        options={Countries}
-        getOptionLabel={(option) => option.name}
-        sx={{ width: 300 }}
-        renderInput={(params) => <TextField {...params} label="Countries" />}
-      />
-      <Button
-        style={{ marginTop: 10 }}
-        variant="contained"
-        onClick={() => navigate("/third-page")}
+        onLoad={(autocomplete) => {
+          autocompleteRef.current = autocomplete;
+        }}
+        onPlaceChanged={onPlaceChanged}
       >
-        Go to the Third Page
-      </Button>
+        <div className="container">
+          <input
+            type="text"
+            placeholder="Enter address"
+            className="input-field"
+          />
+        </div>
+      </Autocomplete>
+      <div className="map-container">
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          zoom={8}
+          center={center}
+          options={options}
+          onLoad={onMapLoad}
+        >
+          {marker && <Marker position={marker} />}
+        </GoogleMap>
+      </div>
     </div>
   );
 };
