@@ -1,4 +1,4 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { Form, Formik, useFormik } from "formik";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,9 +13,15 @@ const Dashboard = ({ setAllData }) => {
   // https://formik.org/docs/api/useFormik
   // https://stackoverflow.com/questions/16699007/regular-expression-to-match-standard-10-digit-phone-number
   const phoneRegExp = /^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
+  const nameRegExp = /[a-zA-Z]+[ a-zA-Z]*/;
 
   let userSchema = yup.object({
-    name: yup.string().required("Name is Required"),
+    name: yup
+      .string()
+      .required("Name is Required")
+      // Have to include some more character with numbers cannot add only numbers
+      .matches(nameRegExp, "Invalid name")
+      .max(50, "Name must be less than 50 characters"),
     email: yup
       .string("Enter your email")
       .email("Enter a valid email")
@@ -51,7 +57,25 @@ const Dashboard = ({ setAllData }) => {
   return (
     <Formik>
       <Form onSubmit={handleSubmit}>
-        <Box style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        <Box
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 5,
+            border: "2px dotted blue",
+            padding: 20,
+          }}
+        >
+          <Typography
+            variant="h4"
+            style={{
+              border: "2px solid green",
+              borderRadius: "25px",
+              padding: "10px",
+            }}
+          >
+            Enter Your Details
+          </Typography>
           <TextField
             label="Name"
             name="name"
